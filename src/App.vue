@@ -1,20 +1,21 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import type { Store } from '@vue/repl'
+import { Preview, ReplStore } from '@vue/repl';
+import { provide } from 'vue'
+
+const store: Store = new ReplStore()
+
+store.init()
+
+store.state.activeFile.code = ''
+
+provide('store', store)
+provide('clear-console', true)
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+  <Preview show :ssr="false"></Preview>
+  <textarea v-model="store.state.activeFile.code" />
 </template>
 
 <style scoped>

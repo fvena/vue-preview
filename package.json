@@ -15,6 +15,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@vue/repl": "^1.4.1",
     "vue": "^3.3.2"
   },
   "devDependencies": {
