@@ -1,5 +1,6 @@
 <template>
-  <Demo />
+  <Demo :code="demo" />
+  <Preview :code="preview" />
   <Editor :value="html" mode="html" />
   <Editor :value="css" mode="css" />
   <Editor :value="scss" mode="scss" />
@@ -13,6 +14,49 @@
 <script setup lang="ts">
 import Demo from './components/Demo.vue'
 import Editor from './components/editor/Editor.vue'
+import Preview from './components/preview/Preview.vue'
+
+const demo = `
+<script setup>
+import { ref } from 'vue'
+
+const msg = ref('Hello World!')
+<\/script>
+
+<template>
+  <h1>{{ msg }}</h1>
+  <input v-model="msg">
+</template>
+
+<style>
+  h1 {
+    color: green;
+  }
+</style>
+`.trim()
+
+const preview = `
+<script>
+export default {
+  data() {
+    return {
+      count: 0
+    }
+  }
+}
+<\/script>
+
+<template>
+  <button @click="count++">Count is: {{ count }}</button>
+</template>
+
+<style scoped>
+button {
+  font-weight: bold;
+}
+</style>
+`.trim()
+
 
 const html = `
 <!DOCTYPE html>
@@ -28,14 +72,14 @@ const html = `
 		
 	</body>
 </html>
-`
+`.trim()
 
 const css = `
 body {
   margin: 0;
   padding: 0;
 }
-`
+`.trim()
 
 const scss = `
 $color: #333;
@@ -43,7 +87,7 @@ $color: #333;
 body {
   color: $color;
 }
-`
+`.trim()
 
 const json = `
 {
@@ -52,14 +96,14 @@ const json = `
   "description": "A Vue.js project",
   "author": "egoist",
 }
-`
+`.trim()
 
 const javascript = `
 import { createApp } from 'vue'
 import App from './App.vue'
 
 createApp(App).mount('#app')
-`
+`.trim()
 
 const typescript = `
 type Point = {
@@ -74,15 +118,15 @@ function printCoord(pt: Point) {
 }
  
 printCoord({ x: 100, y: 100 });
-`
+`.trim()
 
 const markdown = `
 # Hello World
-`
+`.trim()
 
 const shell = `
 echo "Hello World"
-`
+`.trim()
 
 </script>
 
