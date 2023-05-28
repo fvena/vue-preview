@@ -28,9 +28,11 @@ const msg = ref('Hello World!')
   <input v-model="msg">
 </template>
 
-<style>
+<style lang="scss" scoped>
+  $color: red;
+
   h1 {
-    color: green;
+    color: $color;
   }
 </style>
 `.trim()
@@ -50,9 +52,12 @@ export default {
   <button @click="count++">Count is: {{ count }}</button>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+$color: red;
+
 button {
   font-weight: bold;
+  color: $color;
 }
 </style>
 `.trim()

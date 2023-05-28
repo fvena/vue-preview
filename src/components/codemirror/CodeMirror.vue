@@ -4,9 +4,8 @@
 
 <script setup lang="ts">
 import type { ViewUpdate } from '@codemirror/view'
-import { vue } from '@codemirror/lang-vue'
 import { html } from '@codemirror/lang-html'
-import { sass } from '@codemirror/lang-sass'
+import { sass, sassLanguage } from '@codemirror/lang-sass'
 import { json } from '@codemirror/lang-json'
 import { javascript } from '@codemirror/lang-javascript'
 import { markdown } from '@codemirror/lang-markdown'
@@ -43,7 +42,15 @@ const el = ref()
 const language = (() => {
   switch (props.mode) {
     case 'vue':
-      return vue()
+      return html({
+        nestedLanguages: [{
+          tag: "style",
+          attrs(attrs) {
+            return attrs.lang == "scss" || attrs.lang == "sass"
+          },
+          parser: sassLanguage.parser
+        }]
+      })
     case 'html':
       return html()
     case 'css':
@@ -61,7 +68,7 @@ const language = (() => {
     case 'shell':
       return StreamLanguage.define(shell)
     default:
-      return vue()
+      return html()
   }
 })()
 

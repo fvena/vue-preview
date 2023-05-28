@@ -10,7 +10,11 @@ import type { Store } from '@vue/repl'
 import { ReplStore } from '@vue/repl';
 import { onMounted, onUnmounted, provide, watch } from 'vue'
 import { debounce } from '../../utils';
+import { parseVueComponent } from '../utils/process-component';
 
+//
+// Props
+//
 export interface Props {
   store?: Store
   code?: string
@@ -21,10 +25,17 @@ const props = withDefaults(defineProps<Props>(), {
   code: ''
 })
 
+//
+// Data
+//
 const { store } = props
 
 provide('store', store)
 provide('clear-console', true)
+
+//
+// Methods
+//
 
 /**
  * Resize the iframe to fit the content.
@@ -40,9 +51,23 @@ const resize = (event: MessageEvent) => {
   }
 };
 
-onMounted(() => {
+const parse = async (code: string) => {
+  const parseComponent = await parseVueComponent(code)
+
+  if (parseComponent.errors?.length) {
+    console.error(parseComponent.errors)
+    return
+  }
+
+  store.state.activeFile.code = parseComponent.code
+}
+
+//
+// Lifecycle
+//
+onMounted(async () => {
   store.init()
-  store.state.activeFile.code = props.code
+  parse(props.code)
   window.addEventListener('message', resize, true)
 })
 
@@ -50,13 +75,15 @@ onUnmounted(() => {
   window.removeEventListener('message', resize)
 })
 
+//
+// Watchers
+//
+
 /**
  * Update the code in the store. 
  * Use a debounce to prevent the store from being updated too often.
  */
-watch(() => props.code, debounce((code: string) => {
-  store.state.activeFile.code = code
-}, 250))
+watch(() => props.code, debounce(parse, 250))
 
 </script>
 
