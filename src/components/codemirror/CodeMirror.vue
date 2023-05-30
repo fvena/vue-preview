@@ -1,5 +1,5 @@
 <template>
-  <div class="editor" ref="el"></div>
+  <div class="editor" ref="editorContainer"></div>
 </template>
 
 <script setup lang="ts">
@@ -10,9 +10,9 @@ import { json } from '@codemirror/lang-json'
 import { javascript } from '@codemirror/lang-javascript'
 import { markdown } from '@codemirror/lang-markdown'
 import { shell } from '@codemirror/legacy-modes/mode/shell'
-import { ref, onMounted, watchEffect } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { closeBrackets } from '@codemirror/autocomplete'
-import { EditorState } from "@codemirror/state"
+import { EditorState, Compartment } from "@codemirror/state"
 import { defaultKeymap, indentWithTab } from '@codemirror/commands'
 import { indentOnInput, syntaxHighlighting, defaultHighlightStyle, StreamLanguage } from '@codemirror/language'
 import { EditorView, keymap, drawSelection, highlightActiveLine, lineNumbers, highlightActiveLineGutter, highlightSpecialChars } from "@codemirror/view"
@@ -22,61 +22,44 @@ export type Mode = 'vue' | 'html' | 'css' | 'sass' | 'scss' | 'json' | 'javascri
 
 export interface Props {
   mode?: Mode
-  value?: string
+  code?: string
   readonly?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   mode: 'vue',
-  value: undefined,
+  code: undefined,
   readonly: false
 })
 
-const emit = defineEmits<(e: 'change', value: string) => void>()
+const emit = defineEmits<{
+  change: [string]
+}>()
 
-const el = ref()
+const editorContainer = ref<HTMLElement>()
+const languageConf = new Compartment
 
-/**
- * Returns the language for the editor.
- */
-const language = (() => {
-  switch (props.mode) {
-    case 'vue':
-      return html({
-        nestedLanguages: [{
-          tag: "style",
-          attrs(attrs) {
-            return attrs.lang == "scss" || attrs.lang == "sass"
-          },
-          parser: sassLanguage.parser
-        }]
-      })
-    case 'html':
-      return html()
-    case 'css':
-    case 'sass':
-    case 'scss':
-      return sass()
-    case 'json':
-      return json()
-    case 'javascript':
-      return javascript()
-    case 'typescript':
-      return javascript({ typescript: true })
-    case 'markdown':
-      return markdown()
-    case 'shell':
-      return StreamLanguage.define(shell)
-    default:
-      return html()
-  }
-})()
+const modeToLanguage = {
+  'vue': () => html({
+    nestedLanguages: [{
+      tag: "style",
+      attrs(attrs) { return attrs.lang == "scss" || attrs.lang == "sass" },
+      parser: sassLanguage.parser
+    }]
+  }),
+  'html': html,
+  'css': sass,
+  'sass': sass,
+  'scss': sass,
+  'json': json,
+  'javascript': javascript,
+  'typescript': () => javascript({ typescript: true }),
+  'markdown': markdown,
+  'shell': () => StreamLanguage.define(shell),
+};
 
-/**
- * The editor state.
- */
-let state = EditorState.create({
-  doc: props.value,
+let editorState = EditorState.create({
+  doc: props.code,
   extensions: [
     closeBrackets(),
     drawSelection(),
@@ -94,7 +77,7 @@ let state = EditorState.create({
       ...defaultKeymap,
       indentWithTab
     ]),
-    language,
+    languageConf.of(modeToLanguage[props.mode]()),
     lineNumbers(),
     syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
     light,
@@ -103,15 +86,25 @@ let state = EditorState.create({
 
 onMounted(() => {
   const editor = new EditorView({
-    state,
-    parent: el.value,
+    state: editorState,
+    parent: editorContainer.value,
   })
 
-  watchEffect(() => {
-    const cur = editor.state.doc.toString()
-    if (props.value !== cur) {
-      editor.dispatch({ changes: { from: 0, to: editor.state.doc.length, insert: props.value } })
-    }
+  // Sync the code with the editor
+  // When the value changes, update the editor
+  watch(() => props.code, (code) => {
+    if (code === editor.state.doc.toString()) return
+
+    editor.dispatch({
+      changes: { from: 0, to: editor.state.doc.length, insert: code }
+    })
+  })
+
+  // Reconfigure the language when the mode changes
+  watch(() => props.mode, (mode) => {
+    editor.dispatch({
+      effects: languageConf.reconfigure(modeToLanguage[mode]())
+    })
   })
 })
 </script>

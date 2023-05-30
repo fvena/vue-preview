@@ -1,17 +1,41 @@
 <template>
+  <h1>Demo</h1>
   <Demo :code="demo" />
+
+  <h1>Preview</h1>
   <Preview :code="preview" />
-  <Editor :value="html" mode="html" />
-  <Editor :value="css" mode="css" />
-  <Editor :value="scss" mode="scss" />
-  <Editor :value="json" mode="json" />
-  <Editor :value="javascript" mode="javascript" />
-  <Editor :value="typescript" mode="typescript" />
-  <Editor :value="markdown" mode="markdown" />
-  <Editor :value="shell" mode="shell" />
+
+  <h1>Demo files</h1>
+  <Demo :code="demoFiles" />
+
+  <h1>Editor HTML</h1>
+  <Editor v-model="html" mode="html" />
+
+  <h1>Editor CSS</h1>
+  <Editor v-model="css" mode="css" />
+
+  <h1>Editor SCSS</h1>
+  <Editor v-model="scss" mode="scss" />
+
+  <h1>Editor JSON</h1>
+  <Editor v-model="json" mode="json" />
+
+  <h1>Editor Javascript</h1>
+  <Editor v-model="javascript" mode="javascript" />
+
+  <h1>Editor Typescript</h1>
+  <Editor v-model="typescript" mode="typescript" />
+
+  <h1>Editor Markdown</h1>
+  <Editor v-model="markdown" mode="markdown" />
+
+  <h1>Editor Shell</h1>
+  <Editor v-model="shell" mode="shell" />
 </template>
 
 <script setup lang="ts">
+import type { File } from './components/editor/Editor.vue'
+
 import Demo from './components/Demo.vue'
 import Editor from './components/editor/Editor.vue'
 import Preview from './components/preview/Preview.vue'
@@ -62,6 +86,42 @@ button {
 </style>
 `.trim()
 
+const demoFileHTML = `
+<h1>{{ msg }}</h1>
+  <input v-model="msg">
+`.trim()
+
+const demoFileSCSS = `
+$color: blue;
+
+  h1 {
+    color: $color;
+  }
+`.trim()
+
+const demoFileJS = `
+import { ref } from 'vue'
+
+const msg = ref('Hello World 2!')
+`.trim()
+
+const demoFiles: File[] = [
+  {
+    name: 'template',
+    mode: 'html',
+    content: demoFileHTML,
+  },
+  {
+    name: 'style',
+    mode: 'scss',
+    content: demoFileSCSS,
+  },
+  {
+    name: 'script',
+    mode: 'typescript',
+    content: demoFileJS,
+  },
+]
 
 const html = `
 <!DOCTYPE html>
@@ -135,4 +195,15 @@ echo "Hello World"
 
 </script>
 
-<style scoped></style>
+<style>
+body {
+  margin: 2rem;
+}
+
+h1 {
+  margin: 3rem 0 1rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  border-bottom: 1px solid #eee;
+}
+</style>
