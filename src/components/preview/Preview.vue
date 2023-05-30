@@ -51,7 +51,15 @@ const resize = (event: MessageEvent) => {
   }
 };
 
-const parse = async (code: string) => {
+const parse = async (value: string) => {
+  let code = value.trim()
+
+  // Check if is a vue component
+  // if not, wrap it in a template tag
+  if (!code.includes('<template>')) {
+    code = `<template>${code}</template>`
+  }
+
   const parseComponent = await parseVueComponent(code)
 
   if (parseComponent.errors?.length) {

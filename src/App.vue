@@ -8,6 +8,9 @@
   <h1>Demo files</h1>
   <Demo :code="demoFiles" />
 
+  <h1>Demo Default HTML</h1>
+  <Demo :code="defaultHTML" />
+
   <h1>Editor HTML</h1>
   <Editor v-model="html" mode="html" />
 
@@ -122,6 +125,15 @@ const demoFiles: File[] = [
     content: demoFileJS,
   },
 ]
+
+const defaultHTML = `
+<h1>Hello World</h1>
+<h2>Hello World</h2>
+<h3>Hello World</h3>
+<h4>Hello World</h4>
+<h5>Hello World</h5>
+<h6>Hello World</h6>
+`.trim()
 
 const html = `
 <!DOCTYPE html>
