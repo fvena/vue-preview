@@ -6,11 +6,16 @@
 
 <script setup lang="ts">
 import { Preview } from '@vue/repl';
-import type { Store } from '@vue/repl'
+import type { Store, ReplProps } from '@vue/repl'
 import { ReplStore } from '@vue/repl';
 import { onMounted, onUnmounted, provide, watch } from 'vue'
 import { debounce } from '../../utils';
 import { parseVueComponent } from '../utils/process-component';
+
+export interface DefaultStyle {
+  css?: string
+  scss?: string
+}
 
 //
 // Props
@@ -18,6 +23,8 @@ import { parseVueComponent } from '../utils/process-component';
 export interface Props {
   store?: Store
   code?: string
+  defaultStyle?: DefaultStyle
+  previewOptions?: ReplProps['previewOptions']
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -31,7 +38,8 @@ const props = withDefaults(defineProps<Props>(), {
 const { store } = props
 
 provide('store', store)
-provide('clear-console', true)
+provide('clear-console', false)
+provide('preview-options', props.previewOptions)
 
 //
 // Methods
@@ -51,7 +59,7 @@ const resize = (event: MessageEvent) => {
   }
 };
 
-const parse = async (value: string) => {
+const parse = async (value: string, defaultStyle?: DefaultStyle) => {
   let code = value.trim()
 
   // Check if is a vue component
@@ -59,6 +67,27 @@ const parse = async (value: string) => {
   if (!code.includes('<template>')) {
     code = `<template>${code}</template>`
   }
+
+  // Add sass library
+  // if there is a <style> tag, add the library before it
+  let defaultStyleContent = ''
+
+  if (defaultStyle?.css) {
+    defaultStyleContent += `<style>${defaultStyle?.css}</style>`
+  }
+  if (defaultStyle?.scss) {
+    defaultStyleContent += `<style lang="scss">${defaultStyle?.scss}</style>`
+  }
+
+  if (defaultStyleContent) {
+    if (!code.includes('<style')) {
+      code += defaultStyleContent
+    } else {
+      code = code.replace(/<style[^>]*>/, `${defaultStyleContent}$&`)
+    }
+  }
+
+
 
   const parseComponent = await parseVueComponent(code)
 
@@ -75,7 +104,7 @@ const parse = async (value: string) => {
 //
 onMounted(async () => {
   store.init()
-  parse(props.code)
+  await parse(props.code, props.defaultStyle)
   window.addEventListener('message', resize, true)
 })
 
@@ -91,7 +120,12 @@ onUnmounted(() => {
  * Update the code in the store. 
  * Use a debounce to prevent the store from being updated too often.
  */
-watch(() => props.code, debounce(parse, 250))
+const debounceParse = debounce(parse, 500)
+
+watch(
+  () => props.code,
+  async newCode => await debounceParse(newCode, props.defaultStyle)
+)
 
 </script>
 

@@ -30,26 +30,41 @@ function compileScss(scss: string): Promise<CompileResult> {
 }
 
 async function compileStyles(styles: SFCStyleBlock[]): Promise<StylesResult> {
-  const compiles = await Promise.all(
-    styles.map(async (style) => {
-      let error
+  //
+  // Agrupa los estilos por lang
+  //
+  const stylesGroup = styles.reduce((acc: SFCStyleBlock[], style: SFCStyleBlock) => {
+    // Encuentra el índice del objeto con el mismo lang en el acumulador
+    const index = acc.findIndex(item => item.lang === item.lang);
 
+    if (index !== -1) {
+      // Si se encuentra, concatena el contenido
+      acc[index].content += style.content;
+    } else {
+      // Si no se encuentra, agrega un nuevo objeto
+      acc.push(style);
+    }
+    return acc;
+  }, [])
+
+  //
+  // Compila los estilos scss
+  //
+  const errors: string[] = []
+  const compiles = await Promise.all(
+    stylesGroup.map(async (style) => {
       if (style.lang === 'scss') {
         const result = await compileScss(style.content)
-        style.content = result.code
-        error = result.error
+        if (result.error) errors.push(result.error)
+        else style.content = result.code
         delete style.attrs.lang
       }
 
-      return { style, error }
+      return style
     })
   )
 
-  return compiles.reduce((acc, { style, error }) => {
-    acc.styles.push(style)
-    if (error) acc.errors.push(error)
-    return acc
-  }, { styles: [], errors: [] } as StylesResult)
+  return { styles: compiles, errors }
 }
 
 export { compileStyles }

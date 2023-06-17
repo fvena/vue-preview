@@ -11,6 +11,15 @@
   <h1>Demo Default HTML</h1>
   <Demo :code="defaultHTML" />
 
+  <h1>Demo Import Library SCSS</h1>
+  <Demo :code="defaultHTML" :defaultStyle="defaultSCSSStyle" />
+
+  <h1>Demo Import Library SCSS with SCSS</h1>
+  <Demo :code="importLibrarySCSS" :defaultStyle="defaultSCSSStyle" />
+
+  <h1>Demo Import Library CSS</h1>
+  <Demo :code="importLibrarySCSS" :defaultStyle="defaultCSSStyle" />
+
   <h1>Editor HTML</h1>
   <Editor v-model="html" mode="html" />
 
@@ -134,6 +143,59 @@ const defaultHTML = `
 <h5>Hello World</h5>
 <h6>Hello World</h6>
 `.trim()
+
+const importLibrarySCSS = `
+<template>
+  <h1>Hello World</h1>
+  <h2>Hello World</h2>
+  <h3>Hello World</h3>
+</template>
+
+<style lang="scss" scoped>
+  $color: red;
+
+  h1 {
+    color: $color;
+  }
+</style>
+`.trim()
+
+const defaultSCSSStyle = {
+  scss: `
+$h1: yellow;
+$h2: blue;
+$h3: green;
+
+h1 {
+  color: $h1;
+}
+
+h2 {
+  color: $h2;
+}
+
+h3 {
+  color: $h3;
+}
+`.trim(),
+  css: '',
+}
+
+const defaultCSSStyle = {
+  css: `
+h1 {
+  color: aqua;
+}
+
+h2 {
+  color: brown;
+}
+
+h3 {
+  color: blueviolet;
+}
+`.trim(),
+}
 
 const html = `
 <!DOCTYPE html>

@@ -1,18 +1,20 @@
 <template>
   <div class="demo">
-    <Preview :code="demoCode" />
+    <Preview :code="demoCode" :defaultStyle="defaultStyle" />
     <Editor v-model="codeEditor" />
   </div>
 </template>
 
 <script setup lang="ts">
+import type { File } from './editor/Editor.vue'
+import type { DefaultStyle } from './preview/Preview.vue'
 import { computed, ref } from 'vue'
 import Editor from './editor/Editor.vue'
 import Preview from './preview/Preview.vue'
-import type { File } from './editor/Editor.vue'
 
 export interface Props {
   code: string | File[]
+  defaultStyle?: DefaultStyle
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -21,10 +23,12 @@ const props = withDefaults(defineProps<Props>(), {
 
 const codeEditor = ref<string | File[]>(props.code)
 const demoCode = computed(() => {
+  // If the code is a string, it is a Vue component or html but not a file and not need to be parsed
   if (typeof codeEditor.value === 'string') {
     return codeEditor.value
   }
 
+  // If the code is a file, create a Vue component
   return createVueComponent(codeEditor.value)
 })
 
